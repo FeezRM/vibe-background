@@ -1,0 +1,13 @@
+{
+  "name": "Aurora",
+  "type": "video",
+  "file": "bg.mp4",
+  "thumb": "thumb.jpg",
+  "seamless": true,
+  "tags": [
+    "moody",
+    "night"
+  ],
+  "license": "GPL-3.0-or-later",
+  "source": "Made for Vibe Background (scripts/make_loops.py)"
+}

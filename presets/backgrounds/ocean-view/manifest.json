@@ -1,0 +1,24 @@
+{
+  "name": "Ocean view",
+  "type": "image",
+  "file": "bg.jpg",
+  "thumb": "thumb.jpg",
+  "depth": "depth.png",
+  "seamless": false,
+  "tags": [
+    "bright",
+    "calm"
+  ],
+  "subject": {
+    "scale": 1.0,
+    "x": 0.0,
+    "y": 0.0
+  },
+  "light": {
+    "shadow": 0.0,
+    "warmth": 0.0
+  },
+  "license": "CC0-1.0",
+  "source": "Xandrium on Wikimedia Commons",
+  "url": "https://commons.wikimedia.org/wiki/File:Thiranagama_Sri_Lanka_Riff_Hotel_5-star_resort_Suite_bedroom.jpg"
+}

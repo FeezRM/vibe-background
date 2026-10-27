@@ -1,0 +1,24 @@
+{
+  "name": "Sunny bedroom",
+  "type": "image",
+  "file": "bg.jpg",
+  "thumb": "thumb.jpg",
+  "depth": "depth.png",
+  "seamless": false,
+  "tags": [
+    "warm",
+    "home"
+  ],
+  "subject": {
+    "scale": 1.0,
+    "x": 0.0,
+    "y": 0.0
+  },
+  "light": {
+    "shadow": 0.0,
+    "warmth": 0.0
+  },
+  "license": "CC0-1.0",
+  "source": "City of Detroit on Wikimedia Commons",
+  "url": "https://commons.wikimedia.org/wiki/File:Ossian_Sweet_House_interior_-_bedroom.jpg"
+}

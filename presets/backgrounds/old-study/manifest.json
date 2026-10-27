@@ -1,0 +1,24 @@
+{
+  "name": "Old study",
+  "type": "image",
+  "file": "bg.jpg",
+  "thumb": "thumb.jpg",
+  "depth": "depth.png",
+  "seamless": false,
+  "tags": [
+    "warm",
+    "classic"
+  ],
+  "subject": {
+    "scale": 1.0,
+    "x": 0.0,
+    "y": 0.0
+  },
+  "light": {
+    "shadow": 0.0,
+    "warmth": 0.0
+  },
+  "license": "CC0-1.0",
+  "source": "Michael D Beckwith on Wikimedia Commons",
+  "url": "https://commons.wikimedia.org/wiki/File:Abbotsford_House_Study_Room_(248456373).jpeg"
+}

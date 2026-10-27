@@ -1,0 +1,24 @@
+{
+  "name": "Minimal plant",
+  "type": "image",
+  "file": "bg.jpg",
+  "thumb": "thumb.jpg",
+  "depth": "depth.png",
+  "seamless": false,
+  "tags": [
+    "clean",
+    "minimal"
+  ],
+  "subject": {
+    "scale": 1.0,
+    "x": 0.0,
+    "y": 0.0
+  },
+  "light": {
+    "shadow": 0.0,
+    "warmth": 0.0
+  },
+  "license": "CC0-1.0",
+  "source": "W.carter on Wikimedia Commons",
+  "url": "https://commons.wikimedia.org/wiki/File:Plectranthus_verticillatus_in_a_ceramic_pot.jpg"
+}
