@@ -32,6 +32,29 @@ Measured on an M2 Pro MacBook Pro, 1080p clip:
 
 AI Relight adds a keyframe pass before export: one IC-Light run every 2 seconds of video.
 
+## Install
+
+**Mac (Apple Silicon):** open Terminal and run:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/FeezRM/vibe-background/main/install.sh | bash
+```
+
+**Windows:** open PowerShell and run:
+
+```powershell
+irm https://raw.githubusercontent.com/FeezRM/vibe-background/main/install.ps1 | iex
+```
+
+From a clone of this repo, run `./install.sh` or `.\install.ps1` instead. The installer gets
+what's missing (Node.js, ffmpeg and uv, through Homebrew or winget), sets up the video engine,
+builds the app and installs it to `/Applications` on a Mac or the Start menu on Windows. Run it
+again to update.
+
+The engine lives in `~/Library/Application Support/Vibe Background` on a Mac, or
+`%APPDATA%\Vibe Background` on Windows. To uninstall, delete the app, that folder and the
+`VibeBackground` models folder next to it.
+
 ## Development
 
 Requirements: [uv](https://docs.astral.sh/uv/), Node 22+, and ffmpeg on your PATH.

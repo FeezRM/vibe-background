@@ -1,4 +1,5 @@
 import { ChildProcess, spawn } from 'child_process'
+import { existsSync } from 'fs'
 import { join, resolve } from 'path'
 import { app } from 'electron'
 import { is } from '@electron-toolkit/utils'
@@ -19,10 +20,17 @@ export class Engine {
   start(): Promise<EngineInfo> {
     if (this.info) return this.info
     const userPresets = join(app.getPath('userData'), 'presets')
-    const { command, args, cwd } = this.command(userPresets)
+    const { command, args, cwd, env } = this.command(userPresets)
+    if (!is.dev && !existsSync(command)) {
+      return Promise.reject(
+        new Error(
+          `The video engine is not installed (expected ${command}). Run the Vibe Background installer again.`
+        )
+      )
+    }
 
     this.info = new Promise((resolvePromise, reject) => {
-      const proc = spawn(command, args, { cwd, stdio: ['ignore', 'pipe', 'pipe'] })
+      const proc = spawn(command, args, { cwd, env, stdio: ['ignore', 'pipe', 'pipe'] })
       this.proc = proc
       let buffered = ''
       let ready = false
@@ -66,7 +74,12 @@ export class Engine {
     if (is.dev) process.stderr.write(`[engine] ${text}\n`)
   }
 
-  private command(userPresets: string): { command: string; args: string[]; cwd: string } {
+  private command(userPresets: string): {
+    command: string
+    args: string[]
+    cwd: string
+    env: NodeJS.ProcessEnv
+  } {
     if (is.dev) {
       // apps/desktop -> repo root, where engine/ and presets/ live.
       const root = resolve(app.getAppPath(), '..', '..')
@@ -82,7 +95,8 @@ export class Engine {
           '--user-presets',
           userPresets
         ],
-        cwd: root
+        cwd: root,
+        env: process.env
       }
     }
     const runtime = join(app.getPath('userData'), 'engine')
@@ -90,6 +104,11 @@ export class Engine {
       process.platform === 'win32'
         ? join(runtime, '.venv', 'Scripts', 'vibebg-server.exe')
         : join(runtime, '.venv', 'bin', 'vibebg-server')
+    // Apps opened from Finder don't inherit the shell PATH, so the installer links ffmpeg here.
+    const ffmpegDir = join(runtime, 'ffmpeg')
+    const env = existsSync(ffmpegDir)
+      ? { ...process.env, VIBEBG_FFMPEG_DIR: ffmpegDir }
+      : process.env
     return {
       command: bin,
       args: [
@@ -98,7 +117,8 @@ export class Engine {
         '--user-presets',
         userPresets
       ],
-      cwd: runtime
+      cwd: runtime,
+      env
     }
   }
 }

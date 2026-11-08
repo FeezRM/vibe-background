@@ -1,5 +1,5 @@
-appId: com.electron.app
-productName: desktop
+appId: app.vibebackground
+productName: Vibe Background
 directories:
   buildResources: build
 files:
@@ -11,8 +11,11 @@ files:
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
 asarUnpack:
   - resources/**
+extraResources:
+  - from: ../../presets/backgrounds
+    to: presets/backgrounds
 win:
-  executableName: desktop
+  executableName: vibe-background
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
