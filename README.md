@@ -38,6 +38,8 @@ the engine completely.
 
 ## Install
 
+New to Terminal? [Watch the 90-second setup guide](docs/setup-guide.mp4) (Mac and Windows).
+
 **Mac (Apple Silicon):** open Terminal and run:
 
 ```bash
