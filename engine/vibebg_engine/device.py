@@ -1,3 +1,4 @@
+import gc
 import os
 
 import torch
@@ -13,3 +14,12 @@ def pick_device() -> torch.device:
     if torch.backends.mps.is_available():
         return torch.device("mps")
     return torch.device("cpu")
+
+
+def free_device_memory():
+    """Hand memory cached by dropped models back to the system."""
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+    if torch.backends.mps.is_available():
+        torch.mps.empty_cache()

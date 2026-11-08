@@ -128,6 +128,23 @@ def test_cancel_job(env):
         assert not (env["root"] / "c.mp4").exists()
 
 
+def test_models_are_released_when_idle(env):
+    app = create_app(TOKEN, env["root"] / "builtin", env["root"] / "idle-user", idle_unload=0.3)
+    with TestClient(app, headers={"x-vibebg-token": TOKEN}) as c:
+        r = c.post("/preview", json={"path": str(env["clip"]), "time": 0.5,
+                                     "settings": _settings()})
+        assert r.status_code == 200, r.text
+        assert app.state.previews.loaded
+        deadline = time.monotonic() + 5
+        while app.state.previews.loaded and time.monotonic() < deadline:
+            time.sleep(0.1)
+        assert not app.state.previews.loaded
+        # The next preview loads the models again.
+        r = c.post("/preview", json={"path": str(env["clip"]), "time": 0.5,
+                                     "settings": _settings()})
+        assert r.status_code == 200 and app.state.previews.loaded
+
+
 def test_preset_lifecycle(env):
     c = env["client"]
     ids = [p["id"] for p in c.get("/presets").json()]

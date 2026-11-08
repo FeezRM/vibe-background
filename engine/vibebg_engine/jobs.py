@@ -51,6 +51,10 @@ class JobManager:
         with self._lock:
             return self._jobs.get(job_id)
 
+    def busy(self) -> bool:
+        with self._lock:
+            return any(j.status in ("queued", "running") for j in self._jobs.values())
+
     def cancel(self, job_id: str) -> Job | None:
         job = self.get(job_id)
         if job is not None:

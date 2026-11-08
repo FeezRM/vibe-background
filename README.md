@@ -32,6 +32,10 @@ Measured on an M2 Pro MacBook Pro, 1080p clip:
 
 AI Relight adds a keyframe pass before export: one IC-Light run every 2 seconds of video.
 
+The AI models only run while you preview or export. After a minute with nothing to do, the app
+unloads them and frees their memory; the next preview loads them again. Closing the window stops
+the engine completely.
+
 ## Install
 
 **Mac (Apple Silicon):** open Terminal and run:

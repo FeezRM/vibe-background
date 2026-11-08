@@ -91,6 +91,9 @@ app.whenReady().then(() => {
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
+  } else {
+    // The app stays in the Dock on macOS; the engine restarts when a new window connects.
+    engine.stop()
   }
 })
 

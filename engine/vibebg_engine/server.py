@@ -13,6 +13,7 @@ import socket
 import sys
 import tempfile
 import threading
+import time
 from collections.abc import Callable
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -27,9 +28,10 @@ from pydantic import BaseModel, Field
 
 from vibebg_engine import __version__
 from vibebg_engine.background.source import VideoBackground
-from vibebg_engine.device import pick_device
+from vibebg_engine.device import free_device_memory, pick_device
 from vibebg_engine.io.video import FrameReader, probe
 from vibebg_engine.jobs import JobManager
+from vibebg_engine.lighting.relight import release_iclight
 from vibebg_engine.pipeline import (
     BackgroundSettings,
     FrameProcessor,
@@ -39,6 +41,10 @@ from vibebg_engine.pipeline import (
 )
 from vibebg_engine.placement import Placement
 from vibebg_engine.presets import SUPPORTED_EXTS, Preset, create_preset, list_presets
+
+# Models are dropped after this long without requests, so an idle app doesn't hold GBs of
+# memory. The next preview reloads them.
+IDLE_UNLOAD_SECONDS = 60.0
 
 
 class BackgroundIn(BaseModel):
@@ -125,6 +131,18 @@ class PreviewSession:
         self._processor: FrameProcessor | None = None
         self._relight_key = None  # what the processor's current light map was computed for
 
+    @property
+    def loaded(self) -> bool:
+        return self._processor is not None
+
+    def release(self):
+        with self._lock:
+            if self._processor is not None:
+                self._processor.close()
+            self._processor = None
+            self._key = None
+            self._relight_key = None
+
     def render(self, src: Path, t: float, settings: RenderSettings) -> np.ndarray:
         bgs = settings.background
         key = (str(src), settings.tier, bgs.path, bgs.dof, bgs.blur, bgs.depth_path, bgs.seamless,
@@ -163,14 +181,31 @@ def _read_frame(info, t: float, filters: tuple[str, ...] = ()) -> np.ndarray:
 
 
 def create_app(token: str, builtin_presets: Path | None, user_presets: Path,
-               on_ready: Callable[[], None] | None = None) -> FastAPI:
+               on_ready: Callable[[], None] | None = None,
+               idle_unload: float = IDLE_UNLOAD_SECONDS) -> FastAPI:
     preview_dir = Path(tempfile.mkdtemp(prefix="vibebg-preview-"))
+    last_request = time.monotonic()
+    models_loaded = False  # set by any request that may load models
+    in_flight = 0
+    stop_unloader = threading.Event()
+
+    def unload_when_idle():
+        nonlocal models_loaded
+        while not stop_unloader.wait(min(idle_unload, 5.0)):
+            if (models_loaded and in_flight == 0 and not jobs.busy()
+                    and time.monotonic() - last_request >= idle_unload):
+                models_loaded = False
+                previews.release()
+                release_iclight()
+                free_device_memory()
 
     @asynccontextmanager
     async def lifespan(_app: FastAPI):
+        threading.Thread(target=unload_when_idle, daemon=True).start()
         if on_ready:
             on_ready()
         yield
+        stop_unloader.set()
         shutil.rmtree(preview_dir, ignore_errors=True)
 
     app = FastAPI(title="Vibe Background engine", version=__version__, lifespan=lifespan)
@@ -178,15 +213,24 @@ def create_app(token: str, builtin_presets: Path | None, user_presets: Path,
                        allow_headers=["*"])
     jobs = JobManager()
     previews = PreviewSession()
+    app.state.previews = previews
     servable: set[Path] = set()  # files the UI may stream through /media
 
     @app.middleware("http")
     async def require_token(request: Request, call_next):
+        nonlocal last_request, models_loaded, in_flight
         if request.method != "OPTIONS":
             given = request.headers.get("x-vibebg-token") or request.query_params.get("token")
             if not given or not secrets.compare_digest(given, token):
                 return JSONResponse({"detail": "bad token"}, status_code=401)
-        return await call_next(request)
+        if request.url.path in ("/preview", "/jobs"):
+            models_loaded = True
+        in_flight += 1
+        try:
+            return await call_next(request)
+        finally:
+            in_flight -= 1
+            last_request = time.monotonic()
 
     def presets() -> dict[str, Preset]:
         return {p.id: p for p in list_presets(builtin_presets, user_presets)}

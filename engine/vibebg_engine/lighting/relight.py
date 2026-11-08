@@ -88,6 +88,12 @@ def get_iclight(device: torch.device) -> "ICLight":
         return _shared[str(device)]
 
 
+def release_iclight():
+    """Drop the shared IC-Light; a job already using it keeps its own reference."""
+    with _shared_lock:
+        _shared.clear()
+
+
 class ICLight:
     """IC-Light's background-conditioned model (fbc) on Realistic Vision 5.1."""
 

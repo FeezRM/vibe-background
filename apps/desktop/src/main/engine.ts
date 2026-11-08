@@ -53,11 +53,14 @@ export class Engine {
       proc.stderr!.on('data', (chunk: Buffer) => this.remember(chunk.toString()))
       proc.on('error', (err) => reject(new Error(`could not start the engine: ${err.message}`)))
       proc.on('exit', (code) => {
-        this.proc = null
         if (!ready) {
           reject(new Error(`the engine exited (code ${code}):\n${this.log.slice(-20).join('\n')}`))
         }
-        this.info = null
+        // After stop() a newer engine may already be starting; leave its state alone.
+        if (this.proc === proc) {
+          this.proc = null
+          this.info = null
+        }
       })
     })
     return this.info
@@ -66,6 +69,7 @@ export class Engine {
   stop(): void {
     this.proc?.kill()
     this.proc = null
+    this.info = null
   }
 
   private remember(text: string): void {
